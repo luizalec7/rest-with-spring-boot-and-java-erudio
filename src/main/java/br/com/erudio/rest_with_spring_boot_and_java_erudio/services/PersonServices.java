@@ -1,6 +1,8 @@
 package br.com.erudio.rest_with_spring_boot_and_java_erudio.services;
 
+import br.com.erudio.rest_with_spring_boot_and_java_erudio.data.vo.v1.PersonVO;
 import br.com.erudio.rest_with_spring_boot_and_java_erudio.exceptions.ResourceNotFoundException;
+import br.com.erudio.rest_with_spring_boot_and_java_erudio.mapper.DozerMapper;
 import br.com.erudio.rest_with_spring_boot_and_java_erudio.model.Person;
 import br.com.erudio.rest_with_spring_boot_and_java_erudio.repositories.PersonRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,27 +18,30 @@ public class PersonServices {
     @Autowired
     PersonRepository repository;
 
-    public List<Person> findAll(){
+    public List<PersonVO> findAll(){
 
-        return repository.findAll();
+        return DozerMapper.parseListObjects(repository.findAll(), PersonVO.class);
     }
 
-    public Person findbyId(Long id){
+    public PersonVO findbyId(Long id){
 
         logger.info("Finding one person!");
 
-        return repository.findById(id).orElseThrow(()-> new ResourceNotFoundException("No records found for this ID!"));
+        var entity = repository.findById(id).orElseThrow(()-> new ResourceNotFoundException("No records found for this ID!"));
+        return DozerMapper.parseObject(entity, PersonVO.class);
     }
 
 
-    public Person create(Person person){
+    public PersonVO create(PersonVO person){
 
         logger.info("Creating one person!");
+        var entity = DozerMapper.parseObject(person, Person.class);
 
-        return repository.save(person);
+        var vo = DozerMapper.parseObject(repository.save(entity), PersonVO.class);
+        return vo;
     }
 
-    public Person update(Person person){
+    public PersonVO update(PersonVO person){
 
         logger.info("Update one person!");
 
@@ -48,7 +53,8 @@ public class PersonServices {
         entity.setAddress(person.getAddress());
         entity.setGender(person.getGender());
 
-        return repository.save(person);
+        var vo = DozerMapper.parseObject(repository.save(entity), PersonVO.class);
+        return vo;
     }
 
     public void delete(Long id){
